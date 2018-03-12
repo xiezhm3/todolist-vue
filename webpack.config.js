@@ -16,6 +16,9 @@ const config = {
 			test: /\.vue$/,
 			loader: "vue-loader"
 		}, {
+			test: /\.jsx$/,
+			loader: "babel-loader"
+		}, {
 			test: /\.css$/,
 			use: [
 				"style-loader",
@@ -27,6 +30,12 @@ const config = {
 			use: [
 				"style-loader",
 				"css-loader",
+				{
+					loader: "postcss-loader",
+					options: {
+						sourceMap: true //use the sourceMap produced by previous loader
+					}
+				},
 				"stylus-loader"
 			]
 		}, {
@@ -34,7 +43,7 @@ const config = {
 			use: [{
 				loader: "url-loader",
 				options: {
-					limit: 1024,
+					limit: 224,
 					name: "[name]-x.[ext]"
 				}
 			}]

@@ -4,11 +4,7 @@
 
 <script>
 	export default {
-		data() {
-			return {
-				text: "12"
-			};
-		}
+
 	};
 </script>
 
