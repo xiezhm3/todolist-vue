@@ -1,5 +1,7 @@
 <template>
-    
+    <header class="main-header">
+        <h1>Todo</h1>
+    </header>
 </template>
 
 <script>
@@ -8,6 +10,14 @@
 	}
 </script>
 
-<style scoped>
-
+<style scoped lang="stylus">
+.main-header {
+    text-align: center
+    h1 {
+        font-size: 100px
+        color: #fff
+        font-weight:100
+        margin: 20px
+    }
+}
 </style>
