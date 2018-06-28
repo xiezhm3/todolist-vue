@@ -1,4 +1,7 @@
 import Extend from "./extend.js";
+import {
+    removeAllListeners
+} from "cluster";
 
 const Event = (o) => {
     this.type = o.type;
@@ -157,6 +160,91 @@ function sendEvent(eventListeners, type, data, target) {
     sendEventDefault(eventListener, event, target, data);
 }
 
+function removeEventByType(eventListeners, type) {
+    let eventListener = eventListeners[type];
+    if (!eventListener) {
+        return;
+    }
+    if (eventListener.defaultEvent) {
+        eventListener.events = [];
+    } else {
+        delete eventListeners[type];
+    }
+}
+
+function removeEventByDefault(eventListeners, type) {
+    let eventListener = eventListeners[type];
+    if (!eventListener) {
+        return;
+    }
+    if (eventListener.defaultEvent) {
+        eventListener.defaultEvent = null;
+    }
+}
+
+function removeEventByNamespace(eventListeners, namespace) {
+    let types = Object.keys(eventListeners);
+    for (let type of types) {
+        let eventListener = eventListener[type];
+        let events = eventListener.events;
+        for (let i = 0; i < events.length; i++) {
+            let item = events[i];
+            if (item && item.namespace === namespace) {
+                events.splice(i, 1);
+                i--;
+            }
+        }
+    }
+}
+
+function removeEventByHandler(eventListeners, type, handler) {
+    let eventListener = eventListeners[type];
+    if (!eventListener) {
+        return;
+    }
+    let events = eventListener.events;
+    for (let i = 0; i < events.length; i++) {
+        let item = events[i];
+        if (item && item.handler === handler) {
+            events.splice(i, 1);
+            i--;
+        }
+    }
+}
+
+function removeEvent(eventListeners, event) {
+    let type = event.type;
+    if (event.defaultEvent) { // when option.defaultEvent assigned true
+        removeEventByDefault(eventListeners, type);
+        return;
+    }
+    let namespace = event.namespace;
+    if (!type && namespace) {
+        removeEventByNamespace(eventListeners, namespace);
+        return;
+    }
+    let handler = event.handler;
+    if (typeof(handler) === "function") {
+        removeEventByHandler(eventListeners, type, handler);
+        return;
+    }
+    removeEventByType(eventListeners, type);
+
+}
+
+function removeAllEvents(eventListeners) {
+    const types = Object.keys(eventListeners);
+    for (let t of types) {
+        removeEventByType(eventListeners, t);
+    }
+}
+
+function removeEvents(eventListeners, eventList) {
+    for (let event of eventList) {
+        removeEvent(eventListeners, event);
+    }
+}
+
 const EventBase = Extend.extend({
 
     maxListeners: 10,
@@ -185,6 +273,37 @@ const EventBase = Extend.extend({
         return this;
     },
 
+    on: () => {
+        return this.bind.apply(this, arguments);
+    },
+
+    one: (types, handler) => {
+        return this.bind(types, handler, {
+            one: true
+        });
+    },
+
+    once: () => {
+        return this.one.apply(this, arguments);
+    },
+
+    unbind: (types, handler, option) => {
+        let eventListeners = this.getEventListeners;
+        if (!arguments.length) {
+            removeAllEvents(eventListeners);
+            return this;
+        }
+        const eventList = getEventList(types, handler, option);
+        if (!eventList.length) {
+            return this;
+        }
+        removeEvents(eventListeners, eventList);
+        return this;
+    },
+
+    off: () => {
+        return this.unbind.apply(this, arguments);
+    },
     trigger: (type, data) => {
         let eventListeners = this.getEventListeners();
         sendEvent(eventListeners, type, data, this);
