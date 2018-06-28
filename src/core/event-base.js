@@ -189,5 +189,18 @@ const EventBase = Extend.extend({
         let eventListeners = this.getEventListeners();
         sendEvent(eventListeners, type, data, this);
         return this;
+    },
+
+    emit: () => {
+        /*
+        the arguments object is an Array-like object
+         arguments对象不是一个 Array 。它类似于Array，
+        但除了 length 属性和 索引 元素之外没有任何Array属性
+        */
+        return this.trigger.apply(this, arguments);
+    },
+
+    toString: () => {
+        return "[object EventBase]";
     }
 });
